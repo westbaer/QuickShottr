@@ -58,16 +58,10 @@ static void _load_qsettings() {
 	NSMutableData *postBody = [NSMutableData data];
 	[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
   
-	NSMutableString *urlString = [NSMutableString string];
-	[urlString appendString:@"http://www.imageshack.us/index.php"];
-	[urlString appendString:@"?"];
-	
-	[urlString appendString:@"xml=yes"];
 	[postBody appendData:[@"Content-Disposition: form-data; name=\"xml\"\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
 	[postBody appendData:[@"yes" dataUsingEncoding:NSUTF8StringEncoding]];	
 	[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	[urlString appendString:@"&"];
-	
+		
 	[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"quickshottya.png\"\r\n", @"fileupload"] dataUsingEncoding:NSUTF8StringEncoding]];
 	[postBody appendData:[[NSString stringWithString:@"Content-Type: image/png\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
 	[postBody appendData:data];
