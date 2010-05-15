@@ -1,0 +1,9 @@
+Package: quickshottr
+Name: QuickShottr
+Depends: mobilesubstrate
+Version: 2.0
+Architecture: iphoneos-arm
+Description: Upload screenshots with ease!
+Maintainer: Nicolas Haunold
+Author: Nicolas Haunold
+Section: Tweaks
