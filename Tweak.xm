@@ -22,7 +22,7 @@ static void _qss_error_alert(NSError *desc) {
 
 static void _load_qsettings() {
 	if(configDir) CFRelease(configDir); configDir = nil;
-	configDir = [[NSDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/me.nhaunold.QuickShottr.plist"];
+	configDir = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/me.nhaunold.QuickShottr.plist"];
 }
 /*}}}*/
 
@@ -76,6 +76,22 @@ static void _load_qsettings() {
 	[postBody release];
 }
 
+- (void)shortUrl:(NSString *)url {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	NSURL *shorturl = [NSURL URLWithString:[NSString stringWithFormat:@"http://is.gd/api.php?longurl=%@", url]];
+	NSURLRequest *r = [NSURLRequest requestWithURL:shorturl];
+	NSData *d2 = [NSURLConnection sendSynchronousRequest:r returningResponse:nil error:nil];
+	NSString *val = [[NSString alloc] initWithData:d2 encoding:NSUTF8StringEncoding];
+
+	if(val != nil && ![val isEqualToString:@""]) {
+		[self performSelectorOnMainThread:@selector(save:) withObject:val waitUntilDone:YES];
+	}
+
+	[val release];
+	[pool release];
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
 	[serverData setLength:0];
 }
@@ -117,26 +133,20 @@ static void _load_qsettings() {
 	url = [url stringByReplacingOccurrencesOfString:@"<image_link>" withString:@""];
 	url = [url stringByReplacingOccurrencesOfString:@"</image_link>" withString:@""];
 	
-	NSString *urlValue = [url copy];
-	if(QSSBoolValue(@"QSShortize", false)) {
-		NSURL *shorturl = [NSURL URLWithString:[NSString stringWithFormat:@"http://is.gd/api.php?longurl=%@", url]];
-		NSURLRequest *r = [NSURLRequest requestWithURL:shorturl];
-		NSData *d2 = [NSURLConnection sendSynchronousRequest:r returningResponse:nil error:nil];
-		NSString *val = [[NSString alloc] initWithData:d2 encoding:NSUTF8StringEncoding];
-		if(val != nil && ![val isEqualToString:@""]) {
-			[urlValue release];
-			urlValue = [val copy];
-		}
-		[val release];
-
+	if(QSSBoolValue(@"QSShortize", false) == true) {
+		[NSThread detachNewThreadSelector:@selector(shortUrl:) toTarget:self withObject:[url copy]]; 
+	} else {
+		[self save:url];
 	}
-
-	[pasteboard setString:urlValue];
-	[self done];
 
 	[resp release];
 	[connection release];
 	[serverData release];
+}
+
+- (void)save:(NSString *)url {
+	[pasteboard setString:url];
+	[self done];
 }
 
 - (void)done {
@@ -161,12 +171,12 @@ static void _load_qsettings() {
 /* SBScreenShotter Hook {{{*/
 %hook SBScreenShotter
 - (void)finishedWritingScreenshot:(id)fp8 didFinishSavingWithError:(id)fp12 context:(void *)fp16 {
-	if(QSSBoolValue(@"QSEnable", false)) {
+	if(QSSBoolValue(@"QSEnabled", false) == true) {
 		Class sb = NSClassFromString(@"SBStatusBarController");
 		[[sb sharedStatusBarController] addStatusBarItem:@"QuickShottr_0"];
 		[qs uploadPhotoWithData:UIImagePNGRepresentation(fp8)];
 	}
-	
+
 	%orig(fp8, fp12, fp16);
 }
 %end
