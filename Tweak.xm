@@ -118,7 +118,7 @@ static void _load_qsettings() {
 	url = [url stringByReplacingOccurrencesOfString:@"</image_link>" withString:@""];
 	
 	NSString *urlValue = [url copy];
-	if(QSSBoolValue(@"QSShortize", true)) {
+	if(QSSBoolValue(@"QSShortize", false)) {
 		NSURL *shorturl = [NSURL URLWithString:[NSString stringWithFormat:@"http://is.gd/api.php?longurl=%@", url]];
 		NSURLRequest *r = [NSURLRequest requestWithURL:shorturl];
 		NSData *d2 = [NSURLConnection sendSynchronousRequest:r returningResponse:nil error:nil];
@@ -161,7 +161,7 @@ static void _load_qsettings() {
 /* SBScreenShotter Hook {{{*/
 %hook SBScreenShotter
 - (void)finishedWritingScreenshot:(id)fp8 didFinishSavingWithError:(id)fp12 context:(void *)fp16 {
-	if(QSSBoolValue(@"QSEnable", true)) {
+	if(QSSBoolValue(@"QSEnable", false)) {
 		Class sb = NSClassFromString(@"SBStatusBarController");
 		[[sb sharedStatusBarController] addStatusBarItem:@"QuickShottr_0"];
 		[qs uploadPhotoWithData:UIImagePNGRepresentation(fp8)];
