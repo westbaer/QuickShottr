@@ -1,9 +1,9 @@
 Package: quickshottr
 Name: QuickShottr
-Depends: mobilesubstrate preferenceloader
+Depends: mobilesubstrate, preferenceloader
 Version: 2.0
 Architecture: iphoneos-arm
 Description: Upload screenshots with ease!
-Maintainer: Nicolas Haunold <westbaer@gmail.com>
-Author: Nicolas Haunold	<westbaer@gmail.com>
+Maintainer: Nicolas Haunold <westbaer@gmail.com> 
+Author: Nicolas Haunold <westbaer@gmail.com>
 Section: Tweaks
