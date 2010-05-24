@@ -1,3 +1,4 @@
+#include <CoreGraphics/CoreGraphics.h>
 
 @class QuickShottr;
 
@@ -14,11 +15,13 @@ static bool QSSBoolValue(id key, bool value) {
 	else return [obj boolValue];
 }
 
+/*
 static void _qss_error_alert(NSError *desc) {
 	UIAlertView *_ = [[UIAlertView alloc] initWithTitle:@"QuickShottr" message:[desc localizedDescription] delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil];
 	[_ show];
 	[_ release];
 }
+*/
 
 static void _load_qsettings() {
 	if(configDir) CFRelease(configDir); configDir = nil;
@@ -100,29 +103,12 @@ static void _load_qsettings() {
 	[serverData appendData:data];
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
-	Class sb = NSClassFromString(@"SBStatusBarController");
-	id c = [sb sharedStatusBarController];
-
-	if(totalBytesWritten <= totalBytesExpectedToWrite/3) {
-		[c removeStatusBarItem:@"QuickShottr_0"];
-		[c addStatusBarItem:@"QuickShottr_1"];
-	} else if(totalBytesWritten <= totalBytesExpectedToWrite/2 && 
-		  totalBytesWritten >= totalBytesExpectedToWrite/3) {
-		[c removeStatusBarItem:@"QuickShottr_1"];
-		[c addStatusBarItem:@"QuickShottr_2"];
-	} else if(totalBytesWritten == totalBytesExpectedToWrite) {
-		[c removeStatusBarItem:@"QuickShottr_2"];
-		[c addStatusBarItem:@"QuickShottr_3"];
-	}
-}
-
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
 	[connection release];
 	[serverData release];
 	
 	[self done];
-	_qss_error_alert(error);
+	//_qss_error_alert(error);
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -133,15 +119,14 @@ static void _load_qsettings() {
 	url = [url stringByReplacingOccurrencesOfString:@"<image_link>" withString:@""];
 	url = [url stringByReplacingOccurrencesOfString:@"</image_link>" withString:@""];
 	
+	
 	if(QSSBoolValue(@"QSShortize", false) == true) {
-		[NSThread detachNewThreadSelector:@selector(shortUrl:) toTarget:self withObject:[url copy]]; 
+		[NSThread detachNewThreadSelector:@selector(shortUrl:) toTarget:self withObject:url]; 
 	} else {
-		[self save:url];
+		[self save:[url copy]];
 	}
 
 	[resp release];
-	[connection release];
-	[serverData release];
 }
 
 - (void)save:(NSString *)url {
@@ -151,14 +136,7 @@ static void _load_qsettings() {
 
 - (void)done {
 	id sb = [NSClassFromString(@"SBStatusBarController") sharedStatusBarController];
-
-	if([sb statusBarIndicatorNames]) {
-		for(NSString *i in [sb statusBarIndicatorNames]) {
-			if([i hasPrefix:@"QuickShottr_"]) {
-				[sb removeStatusBarItem:i];
-			}
-		}
-	}
+	[sb removeStatusBarItem:@"QuickShottr_3"];
 }
 
 - (void)dealloc {
@@ -172,8 +150,8 @@ static void _load_qsettings() {
 %hook SBScreenShotter
 - (void)finishedWritingScreenshot:(id)fp8 didFinishSavingWithError:(id)fp12 context:(void *)fp16 {
 	if(QSSBoolValue(@"QSEnabled", false) == true) {
-		Class sb = NSClassFromString(@"SBStatusBarController");
-		[[sb sharedStatusBarController] addStatusBarItem:@"QuickShottr_0"];
+		id sb = [NSClassFromString(@"SBStatusBarController") sharedStatusBarController];
+		[sb addStatusBarItem:@"QuickShottr_3"];
 		[qs uploadPhotoWithData:UIImagePNGRepresentation(fp8)];
 	}
 
