@@ -1,3 +1,6 @@
 [submodule "framework"]
 	path = framework
 	url = git://github.com/DHowett/theos.git
+[submodule "toggle"]
+	path = toggle
+	url = git://github.com/westbaer/QuickShottr-Toggle.git
