@@ -4,3 +4,6 @@
 [submodule "toggle"]
 	path = toggle
 	url = git://github.com/westbaer/QuickShottr-Toggle.git
+[submodule "libstatusbar"]
+	path = libstatusbar
+	url = git://github.com/phoenix3200/libstatusbar.git
