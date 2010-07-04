@@ -1,4 +1,5 @@
 #include <CoreGraphics/CoreGraphics.h>
+#include <libstatusbar/UIApplication_libstatusbar.h>
 
 @class QuickShottr;
 
@@ -29,6 +30,23 @@ static void _load_qsettings() {
 }
 /*}}}*/
 
+@interface UIDevice (QuickShottrEX)
+- (BOOL)qs_isIOS4;
+@end
+
+@implementation UIDevice (QuickShottrEX) 
+
+- (BOOL)qs_isIOS4 {
+	float v = [[[UIDevice currentDevice] systemVersion] floatValue];
+	if(v >= 4.0) {
+		return YES;
+	}
+
+	return NO;
+}
+
+@end
+
 /* QuickShottr Class {{{*/
 @interface QuickShottr : NSObject {
 	UIPasteboard *pasteboard;
@@ -37,6 +55,7 @@ static void _load_qsettings() {
 
 
 - (void)uploadPhotoWithData:(NSData *)data;
+- (void)start;
 - (void)done;
 @end
 
@@ -119,13 +138,15 @@ static void _load_qsettings() {
 	url = [url stringByReplacingOccurrencesOfString:@"<image_link>" withString:@""];
 	url = [url stringByReplacingOccurrencesOfString:@"</image_link>" withString:@""];
 	
-	
-	if(QSSBoolValue(@"QSShortize", false) == true) {
+	if([url hasPrefix:@"http://"]) {
+		if(QSSBoolValue(@"QSShortize", false) == true) {
 		[NSThread detachNewThreadSelector:@selector(shortUrl:) toTarget:self withObject:url]; 
-	} else {
-		[self save:[url copy]];
+		} else {
+			[self save:[url copy]];
+		}
 	}
 
+	[self done];
 	[resp release];
 }
 
@@ -134,9 +155,20 @@ static void _load_qsettings() {
 	[self done];
 }
 
+- (void)start {
+	if([[UIDevice currentDevice] qs_isIOS4]) {
+		[[UIApplication sharedApplication] addStatusBarImageNamed:@"QuickShottr_3"];
+	} else {
+		[[NSClassFromString(@"SBStatusBarController") sharedStatusBarController] addStatusBarItem:@"QuickShottr_3"];
+	}
+}
+
 - (void)done {
-	id sb = [NSClassFromString(@"SBStatusBarController") sharedStatusBarController];
-	[sb removeStatusBarItem:@"QuickShottr_3"];
+	if([[UIDevice currentDevice] qs_isIOS4]) {
+		[[UIApplication sharedApplication] removeStatusBarImageNamed:@"QuickShottr_3"];
+	} else {
+		[[NSClassFromString(@"SBStatusBarController") sharedStatusBarController] removeStatusBarItem:@"QuickShottr_3"];
+	}
 }
 
 - (void)dealloc {
@@ -150,8 +182,7 @@ static void _load_qsettings() {
 %hook SBScreenShotter
 - (void)finishedWritingScreenshot:(id)fp8 didFinishSavingWithError:(id)fp12 context:(void *)fp16 {
 	if(QSSBoolValue(@"QSEnabled", false) == true) {
-		id sb = [NSClassFromString(@"SBStatusBarController") sharedStatusBarController];
-		[sb addStatusBarItem:@"QuickShottr_3"];
+		[qs start];
 		[qs uploadPhotoWithData:UIImagePNGRepresentation(fp8)];
 	}
 

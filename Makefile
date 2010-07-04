@@ -1,6 +1,7 @@
 TWEAK_NAME = quickshottr
 quickshottr_OBJCC_FILES =  Tweak.mm
 quickshottr_FRAMEWORKS = CoreGraphics UIKit
+quickshottr_CFLAGS=-I.
 GO_EASY_ON_ME = 1
 
 include framework/makefiles/common.mk
