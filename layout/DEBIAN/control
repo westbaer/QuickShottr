@@ -1,6 +1,6 @@
 Package: quickshottr
 Name: QuickShottr
-Depends: mobilesubstrate, preferenceloader
+Depends: mobilesubstrate, preferenceloader, firmware (<<4.0) | libstatusbar
 Version: 2.0
 Architecture: iphoneos-arm
 Description: Upload screenshots with ease!
